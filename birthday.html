@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Ashma | Birthday Surprise</title>
+    <style>
+        :root { 
+            --primary: #ff80ab; 
+            --secondary: #ff4081; 
+            --soft-pink: #fff5f7;
+            --gift-red: #d32f2f;
+            --gift-gold: #ffd700;
+        }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            overflow: hidden; touch-action: none; 
+            background: var(--soft-pink);
+        }
+
+        #game-cheat-header {
+            position: absolute; top: 15px; width: 100%; text-align: center;
+            z-index: 999; color: var(--secondary); font-weight: bold;
+            font-size: 1.1rem; opacity: 0; pointer-events: none; cursor: pointer;
+        }
+        
+        .heart-bg { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
+        .floating-heart { position: absolute; color: rgba(255, 128, 171, 0.2); font-size: 20px; animation: floatUp 6s linear infinite; }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        #game-stage { 
+            position: absolute; width: 100%; height: 100%; 
+            background: linear-gradient(135deg, #fff5f7, #fce4ec, #e1f5fe, #f3e5f5);
+            background-size: 400% 400%; animation: gradientMove 15s ease infinite;
+            transition: filter 0.8s ease; z-index: 2;
+        }
+
+        .screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: 0.5s ease; }
+        .hidden { opacity: 0; pointer-events: none; transform: translateY(20px); }
+        .blur-effect { filter: blur(12px) brightness(0.9); }
+
+        #player { position: absolute; bottom: 80px; transform: translateX(-50%); z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .nametag { background: rgba(255, 128, 171, 0.5); color: white; padding: 2px 12px; font-size: 14px; margin-bottom: 8px; border-radius: 20px; font-weight: bold; }
+        #ashma-character-img { width: 80px; height: 120px; background-size: contain; background-repeat: no-repeat; background-position: bottom center; }
+
+        .btn { background: var(--primary); color: white; border: none; padding: 18px 45px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 10px 25px rgba(255,128,171,0.4); margin-bottom: 10px; }
+        .heart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 20px; z-index: 50; }
+
+        .romantic-box {
+            width: 140px; height: 140px; background: white; border-radius: 25px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); cursor: pointer; position: relative; overflow: hidden;
+        }
+
+        .gift-wrapped { background: var(--gift-red) !important; }
+        .gift-wrapped::before { content: ""; position: absolute; top: 0; left: 50%; width: 20px; height: 100%; background: var(--gift-gold); transform: translateX(-50%); z-index: 5; }
+        .gift-wrapped::after { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 20px; background: var(--gift-gold); transform: translateY(-50%); z-index: 5; }
+        .gift-bow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; z-index: 6; display: none; }
+        .gift-wrapped .gift-bow { display: block; }
+        .box-preview-img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        .gift-wrapped .box-preview-img { display: none; }
+
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: none; flex-direction: column; z-index: 1000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .modal-content-container { max-width: 1000px; width: 95%; margin: auto; }
+        
+        .sketch-image { width: 100%; max-width: 600px; margin: 0 auto 30px auto; display: block; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+        .sketch-text { font-size: 1.3rem; line-height: 1.8; color: #333; padding: 0 20px; }
+        .sketch-text h2 { color: var(--secondary); font-size: 2.5rem; margin-bottom: 20px; text-align: center; }
+        
+        .modal-nav { display: flex; justify-content: center; gap: 40px; padding: 40px 0; }
+        .nav-btn { background: var(--primary); color: white; border: none; width: 70px; height: 70px; border-radius: 50%; cursor: pointer; font-size: 2rem; display: flex; align-items: center; justify-content: center; }
+        .return-link { margin-top: 20px; display: block; text-align: center; color: var(--secondary); font-weight: bold; cursor: pointer; font-size: 1.2rem; background: none; border: none; width: 100%; padding-bottom: 50px; }
+        
+        .final-letter { text-align: left; font-family: 'Georgia', serif; font-style: italic; white-space: pre-wrap; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div id="game-cheat-header" onclick="win()">A mini game</div>
+    <div class="heart-bg" id="heart-bg"></div>
+
+    <div id="main-container">
+        <div id="game-stage">
+            <div id="score-ui" style="position: absolute; top: 60px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 30px; border-radius: 50px; color: var(--secondary); font-weight: bold; z-index: 50;" class="hidden">
+                Cakes: <span id="score-val">0</span> / 10
+            </div>
+            <div id="player" class="hidden"><div class="nametag">Ashma</div><div id="ashma-character-img"></div></div>
+        </div>
+
+        <div id="start-screen" class="screen">
+            <h1 style="color: #ff4081;">For Ashma</h1>
+            <button class="btn" onclick="showTutorial()">Enter</button>
+        </div>
+
+        <div id="tutorial-screen" class="screen hidden">
+            <div style="background: white; padding: 30px; border-radius: 30px; text-align: center; width: 80%;">
+                <h2 style="color: var(--secondary);">Hi Ashma</h2>
+                <p>Catch 10 Cakes to unlock your surprise.</p>
+                <button class="btn" onclick="startGame()">Start Game</button>
+            </div>
+        </div>
+
+        <div id="reward-btn-container" class="screen hidden">
+            <button class="btn" onclick="finish(1)">VIEW REWARD 🎁</button>
+        </div>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="modal-content-container">
+            <img id="modal-img" class="sketch-image" src="">
+            <div class="sketch-text">
+                <h2 id="modal-title"></h2>
+                <div id="modal-desc"></div>
+            </div>
+            <div class="modal-nav" id="gallery-nav">
+                <button class="nav-btn" onclick="changePage(-1)">❮</button>
+                <span id="page-number" style="font-weight: bold; color: #ff4081; align-self: center; font-size: 1.5rem;"></span>
+                <button class="nav-btn" onclick="changePage(1)">❯</button>
+            </div>
+            <button class="return-link" onclick="closeModal()">Return to Menu</button>
+        </div>
+    </div>
+
+    <script>
+        const ashmaImgFile = "character.png"; 
+        document.getElementById('ashma-character-img').style.backgroundImage = `url(${ashmaImgFile})`;
+        let score = 0; let active = false; let pX = window.innerWidth / 2;
+        let openedGifts = []; let currentPageIndex = 1; const totalPages = 11;
+
+        function showTutorial() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-stage').classList.add('blur-effect'); 
+            document.getElementById('player').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('tutorial-screen').classList.remove('hidden'); }, 300);
+        }
+
+        function startGame() {
+            document.getElementById('tutorial-screen').classList.add('hidden');
+            document.getElementById('game-stage').classList.remove('blur-effect');
+            document.getElementById('score-ui').classList.remove('hidden');
+            const cheat = document.getElementById('game-cheat-header');
+            cheat.style.opacity = "0.1"; 
+            cheat.style.pointerEvents = "auto";
+            active = true; spawn();
+        }
+
+        window.addEventListener('mousemove', (e) => { if(active) { pX = e.clientX; document.getElementById('player').style.left = pX + 'px'; }});
+        window.addEventListener('touchmove', (e) => { if(active) { pX = e.touches[0].clientX; document.getElementById('player').style.left = pX + 'px'; }});
+
+        function spawn() {
+            if(!active) return;
+            const item = document.createElement('div');
+            item.innerHTML = Math.random() > 0.8 ? '💣' : '🍰';
+            item.style.position = 'absolute'; item.style.fontSize = '45px';
+            let startX = 50 + Math.random() * (window.innerWidth - 100);
+            item.style.left = startX + 'px'; item.style.top = '-60px';
+            document.getElementById('game-stage').appendChild(item);
+            let y = -60;
+            let loop = setInterval(() => {
+                if(!active) { item.remove(); clearInterval(loop); return; }
+                y += 5; item.style.top = y + 'px';
+                if(y > window.innerHeight - 150 && Math.abs(pX - startX) < 55) {
+                    if(item.innerHTML === '🍰') { score++; document.getElementById('score-val').innerText = score; if(score >= 10) win(); }
+                    else { score = Math.max(0, score - 2); document.getElementById('score-val').innerText = score; }
+                    clearInterval(loop); item.remove();
+                }
+                if(y > window.innerHeight) { clearInterval(loop); item.remove(); clearInterval(loop); }
+            }, 16);
+            setTimeout(spawn, 850);
+        }
+
+        function win() {
+            active = false;
+            document.getElementById('game-cheat-header').style.opacity = "0";
+            document.getElementById('game-cheat-header').style.pointerEvents = "none";
+            document.getElementById('score-ui').classList.add('hidden');
+            document.getElementById('reward-btn-container').classList.remove('hidden');
+            document.getElementById('game-stage').classList.add('blur-effect');
+        }
+
+        function finish(page) {
+            const container = document.getElementById('main-container');
+            container.style.opacity = '0';
+            setTimeout(() => {
+                if(page === 1) {
+                    container.innerHTML = `
+                        <h2 style="color: #ff4081; text-align:center;">For Ashma</h2>
+                        <div class="heart-grid">
+                            <div class="romantic-box" onclick="openStory()">📖<div style="font-size:12px; font-weight:bold;">The Story</div></div>
+                            <div class="romantic-box" onclick="showBoxContent('msg')">💌<div style="font-size:12px; font-weight:bold;">A Message</div></div>
+                            <div class="romantic-box" onclick="showBoxContent('note')">📌<div style="font-size:12px; font-weight:bold;">Note</div></div>
+                            <div class="romantic-box" onclick="finish(2)">🕊️<div style="font-size:12px; font-weight:bold;">Memories</div></div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <h2 style="color: #ff4081; text-align:center;">Our Memories</h2>
+                        <div class="heart-grid">
+                            ${renderPhotoGift(1, 'story1.jpg')}
+                            ${renderPhotoGift(2, 'story2.jpg')}
+                            ${renderPhotoGift(3, 'story3.jpg')}
+                            ${renderPhotoGift(4, 'story4.jpg')}
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:center; margin-top:20px;">
+                            <button class="btn" style="background: #e91e63; font-size: 1rem; padding: 12px 30px;" onclick="showFinalGift()">THE FINAL GIFT 💝</button>
+                            <button class="btn" style="background: #aaa; font-size: 0.9rem; padding: 8px 20px;" onclick="finish(1)">❮ Back</button>
+                        </div>
+                    `;
+                }
+                container.style.opacity = '1';
+            }, 400);
+        }
+
+        function renderPhotoGift(num, imgFile) {
+            const isOpened = openedGifts.includes(num);
+            return `<div id="box-${num}" class="romantic-box ${isOpened ? '' : 'gift-wrapped'}" onclick="showBoxContent(${num})">
+                        <div class="gift-bow">🎀</div>
+                        <img src="${imgFile}" class="box-preview-img">
+                    </div>`;
+        }
+
+        function showBoxContent(id) {
+            const modal = document.getElementById('modal-overlay');
+            const img = document.getElementById('modal-img');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const nav = document.getElementById('gallery-nav');
+            modal.style.display = 'flex'; nav.style.display = 'none';
+            img.style.display = 'block';
+            img.style.width = "100%"; img.style.float = "none";
+            desc.className = "sketch-text";
+
+            if(id === 'msg') {
+                img.style.display = 'none';
+                title.innerText = "A Message for You";
+                desc.innerHTML = "You are the most beautiful person I know, inside and out. Every day with you is a blessing, and I'm so happy to celebrate your birthday with you. You're my everything!";
+            } else if(id === 'note') {
+                img.style.display = 'none';
+                title.innerText = "Just a Note";
+                desc.innerHTML = "I kept all these memories safe because they mean the world to me. I hope this little game made you smile as much as you make me smile every day.";
+            } else {
+                if(!openedGifts.includes(id)) {
+                    openedGifts.push(id);
+                    const box = document.getElementById(`box-${id}`);
+                    if(box) box.classList.remove('gift-wrapped');
+                }
+                img.style.width = "45%"; img.style.float = "left";
+                img.src = `story${id}.jpg`;
+                
+                if(id === 1) {
+                    title.innerText = "The Very First Photo";
+                    desc.innerHTML = `I remember this day so clearly. We weren't even in a relationship yet—it was that sweet, confusing "situationship" phase. You had to go to Dhirenpara to your Nani's house, and you stopped to buy chat and momo with your "2 kori ka driver."<br><br>We planned to meet at Darjeeling Momo, and while your driver wasn't looking, we managed to steal a few minutes. We talked, laughed, and quickly clicked this photo. It became our very first photo together. Before you left, you reached out to shake my hand. I was so nervous, my heart was racing, but I took your hand. That simple handshake and meeting made that day one of the happiest of my life.`;
+                } else if(id === 2) {
+                    title.innerText = "The CCTV Laughter";
+                    desc.innerHTML = `This is our second image, taken when I went to meet you in Chaudhary's tuition. We were just talking and lost in our own world when I suddenly thought of taking a photo with you. We took so many attempts clicking a selfie, laughing at our poses, and finally clicked this one!<br><br>Right after, we noticed a CCTV camera was watching us the whole time. The moment we saw it, we both started laughing so hard. It's such a funny and special memory of our time together.`;
+                } else if(id === 3) {
+                    title.innerText = "The Staircase Memory";
+                    desc.innerHTML = `This is our third photo. It was Anshuman's birthday, and I took him with me as an excuse just to go and meet you! We were standing and talking in the Chaudhary's tuition staircase, just enjoying the moment. <br><br>I told Anshuman to click our photo, and as he snapped it, I was holding your waist. It was such a sweet moment on those stairs, and I'm so glad we captured it.`;
+                } else if(id === 4) {
+                    title.innerText = "The Morning Routine";
+                    desc.innerHTML = `This is our most recent memory, and it’s one of my absolute favorites because it shows the "real" us. It was morning, and even though we weren't together in person, we were together on a video call. <br><br>We both brushed our teeth together over the screen, and then I just sat back and watched as you put on your face wash. There was something so peaceful and intimate about just sharing a normal morning routine with you. Even through a phone screen, seeing your face like that makes me feel so lucky to have you in my life.`;
+                }
+            }
+        }
+
+        function showFinalGift() {
+            const modal = document.getElementById('modal-overlay');
+            const img = document.getElementById('modal-img');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const nav = document.getElementById('gallery-nav');
+            
+            modal.style.display = 'flex';
+            nav.style.display = 'none';
+            img.style.display = 'none';
+            title.innerText = "Happy Birthday Ashma";
+            desc.className = "sketch-text final-letter";
+            desc.innerHTML = `Wishing you a happy birthday ashma. Ik me story nhi laga sakta isliye mene ye website banaya. As we are not togethr anymore idk kya kahu kya karu but me pagal ho gya hu tumahare bina, mujhe kuch bhi acha nhi lagta ajkal. So I created this website to make you know how much you mean to me, you are the best thing that ever happened to me. Jab koi nhi tha mujhe sambalne tab tum mere sath rahi being my gratest supporter of all time. You made me falll in love again, you taught me how to survive again, you made my life better than before by just being in it. Abhi asa lagta hai ki life me kuch hai he nhi life bohot ajib lagne laga hai mujhe. Im designing this website from 3rd of january, humlog ka relationship start hone ka 2 din baad se. I miss you alot, i miss every moments we spent together, late night video calls, din raat baat, hugs, kisses and specially the fights we had i miss all of them so much. I want you again my life but I wont try to get you again becuse I want you to be happy in your life. Ik you are feeling like crying but dont becuse it's your day and mere jaise kisike lia apna asu waste mat karo. 
+
+At the end I wanted to say ki I luvvvvvvvvvvvvvv uuuuuuuuuuuuuuuuuu soooooooooooooo muchhhhhhhhhhhhhh bbyyyyyyyyyyyyy. Once again happy birthday may you get all the happiness you want.`;
+        }
+
+        function openStory() {
+            currentPageIndex = 1; updateStoryModal();
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('gallery-nav').style.display = 'flex';
+            const img = document.getElementById('modal-img');
+            img.style.display = 'block';
+            img.style.width = "100%"; img.style.float = "none";
+            document.getElementById('modal-desc').className = "sketch-text";
+        }
+
+        function updateStoryModal() {
+            document.getElementById('modal-img').src = `${currentPageIndex}.png`;
+            document.getElementById('modal-title').innerText = `Chapter ${currentPageIndex}`;
+            document.getElementById('modal-desc').innerText = "A beautiful page from our book...";
+            document.getElementById('page-number').innerText = `${currentPageIndex} / ${totalPages}`;
+        }
+
+        function changePage(dir) {
+            currentPageIndex += dir;
+            if (currentPageIndex < 1) currentPageIndex = 1;
+            if (currentPageIndex > totalPages) currentPageIndex = totalPages;
+            updateStoryModal();
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart'; heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            document.querySelector('.heart-bg').appendChild(heart);
+            setTimeout(() => heart.remove(), 6000);
+        }, 500);
+    </script>
+</body>
+</html>
